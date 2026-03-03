@@ -12,7 +12,6 @@ public class InputHandler<T> {
     private final Function<String, T> parser;
     private final String typeName;
 
-    @SuppressWarnings("unchecked")
     public InputHandler(Class<T> type) {
         this(type, new Scanner(System.in));
     }
@@ -64,21 +63,34 @@ public class InputHandler<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public T getInput(String prompt, T min, T max) {
         if (!(min instanceof Comparable && max instanceof Comparable)) {
             throw new IllegalArgumentException("Min and max must be Comparable");
+        }
+        if (min == null || max == null) {
+            throw new IllegalArgumentException("Min and max cannot be null");
         }
 
         String validationMessage = String.format("Please enter a value between %s and %s", min, max);
 
         return getInput(
                 prompt,
-                value -> ((Comparable<T>) min).compareTo(value) <= 0 && ((Comparable<T>) max).compareTo(value) >= 0,
+                value -> {
+                    Comparable<T> minComp = (Comparable<T>) min;
+                    Comparable<T> maxComp = (Comparable<T>) max;
+                    return minComp.compareTo(value) <= 0 && maxComp.compareTo(value) >= 0;
+                },
                 validationMessage
         );
     }
 
-    public T getInput(String prompt, T... validOptions) {
+    @SafeVarargs
+    public final T getInput(String prompt, T... validOptions) {
+        if (validOptions == null || validOptions.length == 0) {
+            throw new IllegalArgumentException("At least one valid option must be provided");
+        }
+        
         Set<T> validSet = new HashSet<>(Arrays.asList(validOptions));
         String validationMessage = "Valid options are: " + Arrays.toString(validOptions);
 
@@ -90,6 +102,10 @@ public class InputHandler<T> {
     }
 
     public String getStringInputIgnoreCase(String prompt, String... validOptions) {
+        if (validOptions == null || validOptions.length == 0) {
+            throw new IllegalArgumentException("At least one valid option must be provided");
+        }
+        
         Set<String> validSet = new HashSet<>();
         for (String option : validOptions) {
             validSet.add(option.toLowerCase());
@@ -99,6 +115,11 @@ public class InputHandler<T> {
             System.out.print(prompt);
             String input = scanner.nextLine().trim().toLowerCase();
             if (validSet.contains(input)) {
+                for (String option : validOptions) {
+                    if (option.toLowerCase().equals(input)) {
+                        return option;
+                    }
+                }
                 return input;
             }
             System.out.println("Valid options are: " + Arrays.toString(validOptions));
