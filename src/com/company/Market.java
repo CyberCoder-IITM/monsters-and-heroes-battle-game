@@ -41,49 +41,58 @@ public class Market {
             System.out.println("3. Exit market");
             System.out.print("Choose an option: ");
 
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            try {
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // Consume newline
 
-            switch (choice) {
-                case 1:
-                    buyItem(hero);
-                    break;
-                case 2:
-                    sellItem(hero);
-                    break;
-                case 3:
-                    inMarket = false;
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
+                switch (choice) {
+                    case 1:
+                        buyItem(hero, scanner);
+                        break;
+                    case 2:
+                        sellItem(hero, scanner);
+                        break;
+                    case 3:
+                        inMarket = false;
+                        break;
+                    default:
+                        System.out.println("Invalid choice. Please try again.");
+                }
+            } catch (java.util.InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                scanner.nextLine(); // Consume invalid input
             }
         }
     }
 
-    private void buyItem(Hero hero) {
+    private void buyItem(Hero hero, Scanner scanner) {
         System.out.println("\nItems for sale:");
         for (int i = 0; i < items.size(); i++) {
             System.out.println((i + 1) + ". " + items.get(i));
         }
 
         System.out.print("Enter the number of the item you want to buy (0 to cancel): ");
-        Scanner scanner = new Scanner(System.in);
-        int choice = scanner.nextInt();
+        try {
+            int choice = scanner.nextInt();
 
-        if (choice > 0 && choice <= items.size()) {
-            Item item = items.get(choice - 1);
-            if (hero.canBuyItem(item)) {
-                hero.buyItem(item);
-                items.remove(item);
-            } else {
-                System.out.println("You can't afford this item or your level is too low.");
+            if (choice > 0 && choice <= items.size()) {
+                Item item = items.get(choice - 1);
+                if (hero.canBuyItem(item)) {
+                    hero.buyItem(item);
+                    items.remove(item);
+                } else {
+                    System.out.println("You can't afford this item or your level is too low.");
+                }
+            } else if (choice != 0) {
+                System.out.println("Invalid choice.");
             }
-        } else if (choice != 0) {
-            System.out.println("Invalid choice.");
+        } catch (java.util.InputMismatchException e) {
+            System.out.println("Invalid input. Please enter a valid number.");
+            scanner.nextLine(); // Consume invalid input
         }
     }
 
-    private void sellItem(Hero hero) {
+    private void sellItem(Hero hero, Scanner scanner) {
         List<Item> inventory = hero.getInventory();
         System.out.println("\nYour inventory:");
         for (int i = 0; i < inventory.size(); i++) {
@@ -91,15 +100,19 @@ public class Market {
         }
 
         System.out.print("Enter the number of the item you want to sell (0 to cancel): ");
-        Scanner scanner = new Scanner(System.in);
-        int choice = scanner.nextInt();
+        try {
+            int choice = scanner.nextInt();
 
-        if (choice > 0 && choice <= inventory.size()) {
-            Item item = inventory.get(choice - 1);
-            hero.sellItem(item);
-            items.add(item);
-        } else if (choice != 0) {
-            System.out.println("Invalid choice.");
+            if (choice > 0 && choice <= inventory.size()) {
+                Item item = inventory.get(choice - 1);
+                hero.sellItem(item);
+                items.add(item);
+            } else if (choice != 0) {
+                System.out.println("Invalid choice.");
+            }
+        } catch (java.util.InputMismatchException e) {
+            System.out.println("Invalid input. Please enter a valid number.");
+            scanner.nextLine(); // Consume invalid input
         }
     }
 }
